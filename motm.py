@@ -117,7 +117,6 @@ def save_motm(motm):
     print("Saved motm")
 
 def handle_motm(number = -1):
-    
     if number > 0:
         print("using this as the number: " + str(number))
         if not os.path.exists(f"resources/txt/{number}.txt"):
@@ -142,6 +141,8 @@ def handle_motm(number = -1):
             old_id = None
         if old_id == new_id:
             print("We already got this")
+            if not os.path.exists(f"resources/txt/{new_id}.txt"):
+                save_motm(motm)
             return
         print(f"New MOTM detected: {new_id} (old was {old_id})")
         with open("resources/txt/motm.txt", "w") as f:
