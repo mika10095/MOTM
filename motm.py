@@ -25,6 +25,9 @@ async def on_message(message:discord.message):
         print(message.content)
         try:
             number = message.content.removeprefix("/motm").strip()
+            if number and number == "0":
+                await message.channel.send("You are too clever for your own good! You wish to seek wisdom you shall not possess!")
+                return
             if number and number.lower() in ["random", "rand", "rng"]:
                 print("I spy with my little eye that someone requests a mystical number")
                 handle_motm()
