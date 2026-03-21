@@ -58,7 +58,8 @@ def get_flavor():
         return "Here is "
 
 def format_response_message(number):
-    file : str = open("resources/txt/"+str(number)+'.txt').readline()
+    with open("resources/txt/"+str(number)+'.txt') as t:
+        file : str = t.readline()
     num = file.split(";")[0]
     name = file.split(";")[1]
     link = file.split(";")[3]
@@ -116,7 +117,8 @@ def convert_tif(motm):
 
 def save_motm(motm):
     print("Saving last motm")
-    open("resources/txt/"+motm.split(";")[0]+'.txt','wt').write(motm)
+    with open("resources/txt/"+motm.split(";")[0]+'.txt','wt') as t:
+        t.write(motm)
     print("Saved motm")
 
 def handle_motm(number=-1):
