@@ -40,7 +40,7 @@ async def on_message(message:discord.message):
                 print("I spy with my little eye that someone is interested in only the latest...")
                 handle_motm()
                 number = open('resources/txt/motm.txt','r').readline()
-            file = discord.File("resources/txt/"+number+'.txt')
+            file = discord.File("resources/jpg/"+number+'jpg')
             await message.channel.send(file=file, content=format_response_message(number))
         except Exception as e:
             print(e)
