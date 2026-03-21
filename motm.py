@@ -45,7 +45,7 @@ async def on_message(message:discord.message):
 
 def get_flavor():
     try:
-        with open("resources/txt/flavor.txt", "r", encoding="utf-8") as f:
+        with open("flavor.txt", "r", encoding="utf-8") as f:
             flavorarr = [line.strip() + " " for line in f if line.strip()]
             return random.choice(flavorarr) if flavorarr else "Here is "
     except FileNotFoundError:
