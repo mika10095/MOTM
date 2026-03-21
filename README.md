@@ -1,7 +1,6 @@
 # MOTM
-Molecule of the Month
+Molecule of the Month - A discord bot and web scraper that gets the requested molecule from https://pdb101.rcsb.org/ written in python.
 -
-A discord bot and web scraper that gets the requested molecule from https://pdb101.rcsb.org/ written in python.
 
 /motm will get you the latest molecule of the month  
 /moth random will get you a random molecule  
