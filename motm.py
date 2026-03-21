@@ -1,3 +1,5 @@
+import os
+
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -23,10 +25,11 @@ async def on_message(message:discord.message):
         print(message.content)
         try:
             number = message.content.removeprefix("/motm").strip()
-            if(number == "random" or number == "rand" or number == "rng"):
+            if number and number.lower() in ["random", "rand", "rng"]:
                 print("I spy with my little eye that someone requests a mystical number")
                 handle_motm()
-                maxnum = open('resources/txt/motm.txt','r').readline()
+                with open('resources/txt/motm.txt','r') as f:
+                    maxnum = f.readline().strip()
                 number = str(random.randint(1,int(maxnum)))
                 print("I shall grant them their wish using:\t" + number)
                 handle_motm(int(number))
@@ -37,7 +40,7 @@ async def on_message(message:discord.message):
                 print("I spy with my little eye that someone is interested in only the latest...")
                 handle_motm()
                 number = open('resources/txt/motm.txt','r').readline()
-            file = discord.File("resources/jpg/"+number+'.jpg')
+            file = discord.File("resources/txt/"+number+'.txt')
             await message.channel.send(file=file, content=format_response_message(number))
         except Exception as e:
             print(e)
@@ -60,7 +63,7 @@ def format_response_message(number):
 
 def check_int_parse(number):
     try:
-        test = int(number)
+        int(number)
         return True
     except Exception as e:
         return False
@@ -89,13 +92,14 @@ def scrape_motm(number = -1):
                             return(id +";"+ exists[2].text +";"+ exists[3].get('href')+";"+"https://pdb101.rcsb.org/motm/"+exists[1].text.strip())
                 elif(int(id) == int(number)):
                     return(id +";"+ exists[2].text +";"+ exists[3].get('href')+";"+"https://pdb101.rcsb.org/motm/"+exists[1].text.strip())
-    return "2"
+    return None
                 
 def download_tif(motm):
     link = motm.split(";")[2]
     print("Downloading tif")
     response = requests.get(link, allow_redirects=True)
-    open("resources/tif/"+motm.split(";")[0]+'.tif', 'wb').write(response.content)
+    with open("resources/tif/"+motm.split(";")[0]+'.tif', 'wb') as t:
+        t.write(response.content)
     print("Downloaded tif")
 
 
@@ -116,24 +120,59 @@ def handle_motm(number = -1):
     
     if number > 0:
         print("using this as the number: " + str(number))
-        motm = scrape_motm(number)
+        if not os.path.exists(f"resources/txt/{number}.txt"):
+            motm = scrape_motm(number)
+            if not motm:
+                print("Failed to scrape MOTM")
+                return
+        else:
+            with open(f"resources/txt/{number}.txt", 'r') as f:
+                motm = f.readline().strip()
     else:
         print("using base motm")
         motm = scrape_motm()
-        open('resources/txt/motm.txt','wt').write(motm.split(";")[0]) 
-    if motm:
-        print(motm)
-        download_tif(motm)
-        convert_tif(motm)
-        save_motm(motm)
+        if not motm:
+            print("we fucked up")
+            return
+        new_id = motm.split(";")[0]
+        try:
+            with open("resources/txt/motm.txt", "r") as f:
+                old_id = f.readline().strip()
+        except FileNotFoundError:
+            old_id = None
+        if old_id == new_id:
+            print("We already got this")
+            return
+        print(f"New MOTM detected: {new_id} (old was {old_id})")
+        with open("resources/txt/motm.txt", "w") as f:
+            f.write(new_id)
+    print("We actually need to deal with this one:", motm)
+    download_tif(motm)
+    convert_tif(motm)
+    save_motm(motm)
+
+def create_directories():
+    print("creating the dirs")
+    dirs = [
+        "resources",
+        "resources/jpg",
+        "resources/tif",
+        "resources/txt"
+    ]
+    for d in dirs:
+        os.makedirs(d, exist_ok=True)
+    print("created the dirs")
 
 def main():
+    create_directories()
     try:
-        token = open('token.txt','r').readline()
+        with open('token.txt','r') as tkn:
+            token = tkn.readline().strip()
     except:
         print("input token:")
         token = input()
-        open('token.txt','wt').write(token) 
+        with open('token.txt','wt') as tkn:
+            tkn.write(token) 
     bot.run(token)
     
     
