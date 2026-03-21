@@ -40,7 +40,7 @@ async def on_message(message:discord.message):
                 print("I spy with my little eye that someone is interested in only the latest...")
                 handle_motm()
                 number = open('resources/txt/motm.txt','r').readline()
-            file = discord.File("resources/jpg/"+number+'jpg')
+            file = discord.File("resources/jpg/"+number+'.jpg')
             await message.channel.send(file=file, content=format_response_message(number))
         except Exception as e:
             print(e)
@@ -116,19 +116,20 @@ def save_motm(motm):
     open("resources/txt/"+motm.split(";")[0]+'.txt','wt').write(motm)
     print("Saved motm")
 
-def handle_motm(number = -1):
+def handle_motm(number=-1):
+    motm = None
     if number > 0:
         print("using this as the number: " + str(number))
         if not os.path.exists(f"resources/txt/{number}.txt"):
             motm = scrape_motm(number)
-            if not motm:
-                print("Failed to scrape MOTM")
-                return
+            if motm:
+                download_tif(motm)
+                convert_tif(motm)
+                save_motm(motm)
         else:
-            with open(f"resources/txt/{number}.txt", 'r') as f:
-                motm = f.readline().strip()
+            with open(f"resources/txt/{number}.txt") as f:
+                motm = f.read().strip()
     else:
-        print("using base motm")
         motm = scrape_motm()
         if not motm:
             print("we fucked up")
@@ -142,15 +143,16 @@ def handle_motm(number = -1):
         if old_id == new_id:
             print("We already got this")
             if not os.path.exists(f"resources/txt/{new_id}.txt"):
+                download_tif(motm)
+                convert_tif(motm)
                 save_motm(motm)
             return
         print(f"New MOTM detected: {new_id} (old was {old_id})")
+        download_tif(motm)
+        convert_tif(motm)
+        save_motm(motm)
         with open("resources/txt/motm.txt", "w") as f:
             f.write(new_id)
-    print("We actually need to deal with this one:", motm)
-    download_tif(motm)
-    convert_tif(motm)
-    save_motm(motm)
 
 def create_directories():
     print("creating the dirs")
