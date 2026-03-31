@@ -12,15 +12,33 @@ intents = discord.Intents.default()
 intents.message_content = True 
 bot = commands.Bot(command_prefix="/",intents=intents)
 
+hamster_mode = False
+codephrases = []
+
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
 
 @bot.event
-async def on_message(message:discord.message):
+async def on_message(message:discord.Message):
     if message.author == bot.user:
         return
-
+    if message.content.startswith("/motm 401"):
+        global hamster_mode
+        hamster_mode = not hamster_mode
+        await message.channel.send(f"oops I fucked {'up' if hamster_mode else 'down'}...")
+        return
+    if hamster_mode:
+        if any(phrase in message.content.lower() for phrase in codephrases):
+            print(message.content + " seen hamster mode activated!")
+            try:
+                await message.channel.send(
+                    content=message.author.mention + " " + get_death_message(),
+                    reference=message
+                )
+            except Exception as e:
+                print(e)
+                await message.channel.send("oops I fucked up...")
     if message.content.startswith('/motm'):
         print(message.content)
         try:
@@ -173,6 +191,7 @@ def create_directories():
 
 def main():
     create_directories()
+    engage_hamster_time()
     try:
         with open('token.txt','r') as tkn:
             token = tkn.readline().strip()
@@ -182,6 +201,25 @@ def main():
         with open('token.txt','wt') as tkn:
             tkn.write(token) 
     bot.run(token)
-    
+#secret hamster mode stuff
+def engage_hamster_time():
+    global codephrases, hamster_mode
+    codephrases = load_codephrases()
+    hamster_mode = False
+
+def load_codephrases():
+    try:
+        with open("codephrases.txt", "r", encoding="utf-8") as f:
+            return [line.strip().lower() for line in f if line.strip()]
+    except FileNotFoundError:
+        return []
+
+def get_death_message():
+    try:
+        with open("death_messages.txt", "r", encoding="utf-8") as f:
+            deatharr = [line.strip() + " " for line in f if line.strip()]
+            return random.choice(deatharr) if deatharr else "You died happily on a farm "
+    except FileNotFoundError:
+        return "I cant seem to find how you died..."
     
 main()
